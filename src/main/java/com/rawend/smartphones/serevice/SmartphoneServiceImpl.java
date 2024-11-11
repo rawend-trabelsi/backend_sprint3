@@ -1,11 +1,16 @@
 package com.rawend.smartphones.serevice;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.rawend.smartphones.entities.Smartphone;
+import com.rawend.smartphones.repos.ImageRepository;
 import com.rawend.smartphones.repos.SmartphoneRepository;
 
 import com.rawend.smartphones.entities.Type; // Assurez-vous que c'est bien celui-ci
@@ -14,17 +19,31 @@ import com.rawend.smartphones.entities.Type; // Assurez-vous que c'est bien celu
 public class SmartphoneServiceImpl  implements SmartphoneService{
 	@Autowired
 	SmartphoneRepository smartphoneRepository;
+	
+	@Autowired
+	ImageRepository imageRepository;
+	@PreAuthorize("hasAuthority('ADMIN')")
 	@Override
 	public Smartphone saveSmartphone(Smartphone s) {
 		
 		 return smartphoneRepository.save(s);
 	}
 
-	@Override
+	/*@Override
 	public Smartphone updateSmartphone(Smartphone s) {
 		
 		return smartphoneRepository.save(s);
+	}*/
+	@Override
+	public Smartphone updateSmartphone(Smartphone s) {
+	//Long oldProdImageId =this.getSmartphone(s.getIdSmartphone()).getImage().getIdImage();
+	//Long newProdImageId =s.getImage().getIdImage();
+	Smartphone prodUpdated = smartphoneRepository.save(s);
+	//if (oldProdImageId != newProdImageId) //si l'image a été modifiée
+	//imageRepository.deleteById(oldProdImageId);
+	return prodUpdated;
 	}
+
 
 	@Override
 	public void deleteSmartphone(Smartphone s) {
@@ -32,11 +51,22 @@ public class SmartphoneServiceImpl  implements SmartphoneService{
 		
 	}
 
-	@Override
+	/*@Override
 	public void deleteSmartphonetById(Long id) {
 		smartphoneRepository.deleteById(id);
 		
-	}
+	}*/
+	@Override 
+	public void deleteSmartphonetById(Long id) { 
+	Smartphone s = getSmartphone(id); 
+	//suuprimer l'image avant de supprimer le produit 
+	try { 
+	Files.delete(Paths.get(System.getProperty("user.home")+"/images/"+s.getImagePath())); 
+	} catch (IOException e) { 
+	e.printStackTrace(); 
+	}  
+	smartphoneRepository.deleteById(id);  
+	} 
 
 	@Override
 	public Smartphone getSmartphone(Long id) {
